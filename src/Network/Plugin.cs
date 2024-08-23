@@ -35,6 +35,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text;
 using ClassicUO.Configuration;
 using ClassicUO.Game;
 using ClassicUO.Game.Data;
@@ -457,6 +458,11 @@ namespace ClassicUO.Network
                 }
                 else if (plugin._onRecv != null)
                 {
+                    if(IsJourney(ref data)) 
+		            { 
+				        Console.WriteLine($"BEFORE - {ParseJourney(ref data)}, data length: {length}");
+		            }
+
                     byte[] tmp = new byte[length];
                     Array.Copy(data, tmp, length);
 
@@ -466,10 +472,31 @@ namespace ClassicUO.Network
                     }
 
                     Array.Copy(tmp, data, length);
+
+                    if (IsJourney(ref data))
+                    {
+                        Console.WriteLine($"AFTER - {ParseJourney(ref data)}, data length: {length}");
+                    }
                 }
             }
 
             return result;
+        }
+
+        public static bool IsJourney(ref byte[] buffer)
+        {
+            // BinaryPrimitives.TryReadUInt32BigEndian(buffer, out uint v);
+            var id = buffer[0];
+            //Console.WriteLine($"[Plugin][server][Parse] id: {id}");
+            return id == 174;
+        }
+
+        public static string ParseJourney(ref byte[] buffer)
+        {
+            var name = Encoding.Default.GetString(buffer, 18, 30);
+            var content = Encoding.BigEndianUnicode.GetString(buffer, 48, buffer.Length - 48);
+
+            return $"{name}:{content}";
         }
 
         internal static bool ProcessSendPacket(byte[] data, ref int length)
