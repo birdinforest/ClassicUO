@@ -20,6 +20,7 @@
     <Copyright>ClassicUO</Copyright>
     <PackageProjectUrl>https://www.classicuo.eu/</PackageProjectUrl>
     <Description>An open source implementation of the Ultima Online Classic Client.</Description>
+    <Configurations>Release;Debug</Configurations>
   </PropertyGroup>
 
 

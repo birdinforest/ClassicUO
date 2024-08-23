@@ -6,6 +6,12 @@
     },
     "ClassicUO No SkipLoginScreen": {
       "commandName": "Project"
+    },
+    "ClassicUO-debug" : {
+      "commandName": "Project",
+      "environmentVariables": {
+        "DYLD_LIBRARY_PATH": "./osx/"
+      }
     }
   }
 }
