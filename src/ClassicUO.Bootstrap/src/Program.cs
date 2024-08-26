@@ -188,10 +188,19 @@ sealed class ClassicUOHost : IPluginHandler
         }
 
         var libPtr = Native.LoadLibrary(libName);
+        if (libPtr == IntPtr.Zero)
+        {
+            throw new Exception($"Failed to load library: {libName}");
+        }
 
         unsafe
         {
             var initializePtr = Native.GetProcessAddress(libPtr, "Initialize");
+            if (initializePtr == IntPtr.Zero)
+            {
+                throw new Exception($"Failed to get function pointer for Initialize in library: {libName}");
+            }
+
             var initializeMethod = Marshal.GetDelegateForFunctionPointer<dOnInitializeCuo>(initializePtr);
 
             var argv = new IntPtr[args.Length];
