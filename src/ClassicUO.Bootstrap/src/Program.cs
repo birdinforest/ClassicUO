@@ -184,13 +184,17 @@ sealed class ClassicUOHost : IPluginHandler
         }
         else
         {
+            Console.WriteLine("OS not supported");
             throw new NotSupportedException("OS not suported");
         }
 
+        Console.WriteLine("ClassicUO lib loaded: {0}", libName);
+        
         var libPtr = Native.LoadLibrary(libName);
         if (libPtr == IntPtr.Zero)
         {
-            throw new Exception($"Failed to load library: {libName}");
+            Console.WriteLine("Failed to load {0}. Maybe it doesn't exists.", libName);
+            throw new DllNotFoundException($"Failed to load {libName}. Maybe it doesn't exists.");
         }
 
         unsafe
@@ -198,7 +202,8 @@ sealed class ClassicUOHost : IPluginHandler
             var initializePtr = Native.GetProcessAddress(libPtr, "Initialize");
             if (initializePtr == IntPtr.Zero)
             {
-                throw new Exception($"Failed to get function pointer for Initialize in library: {libName}");
+                Console.WriteLine("'Initialize' entry point not found");
+                throw new EntryPointNotFoundException("'Initialize' entry point not found");
             }
 
             var initializeMethod = Marshal.GetDelegateForFunctionPointer<dOnInitializeCuo>(initializePtr);

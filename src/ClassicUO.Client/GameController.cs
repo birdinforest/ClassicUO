@@ -48,6 +48,7 @@ using ClassicUO.Utility.Logging;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -66,6 +67,7 @@ namespace ClassicUO
         private UltimaBatcher2D _uoSpriteBatch;
         private bool _suppressedDraw;
         private Texture2D _background;
+        private bool _pluginsInitialized = false;
 
         public GameController(IPluginHost pluginHost)
         {
@@ -97,6 +99,12 @@ namespace ClassicUO
         public GraphicsDeviceManager GraphicManager { get; }
         public readonly uint[] FrameDelay = new uint[2];
 
+        private readonly List<(uint, Action)> _queuedActions = new ();
+
+        public void EnqueueAction(uint time, Action action)
+        {
+            _queuedActions.Add((Time.Ticks + time, action));
+        }
 
         protected override void Initialize()
         {
@@ -143,6 +151,7 @@ namespace ClassicUO
             {
                 Plugin.Create(p);
             }
+            _pluginsInitialized = true;
 
             Log.Trace("Done!");
 
@@ -417,7 +426,20 @@ namespace ClassicUO
             UO.GameCursor?.Update();
             Audio?.Update();
 
-            base.Update(gameTime);
+
+            for (var i = _queuedActions.Count - 1; i >= 0; i--)
+            {
+                (var time, var fn) = _queuedActions[i];
+                
+                if (Time.Ticks > time)
+                {
+                    fn();
+                    _queuedActions.RemoveAt(i);
+                    break;
+                }
+            }
+
+             base.Update(gameTime);
         }
 
         protected override void Draw(GameTime gameTime)
@@ -517,7 +539,9 @@ namespace ClassicUO
         {
             SDL_Event* sdlEvent = (SDL_Event*)ptr;
 
-            if (Plugin.ProcessWndProc(sdlEvent) != 0)
+            // Don't pass SDL events to the plugin host before the plugins are initialized
+            // or the garbage collector can get screwed up
+            if (_pluginsInitialized && Plugin.ProcessWndProc(sdlEvent) != 0)
             {
                 if (sdlEvent->type == SDL_EventType.SDL_MOUSEMOTION)
                 {

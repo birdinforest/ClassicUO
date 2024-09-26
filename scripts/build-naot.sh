@@ -33,7 +33,9 @@ esac
 
 
 dotnet publish "$bootstrap_project" -c Release -o "$output_directory"
-dotnet publish "$client_project" -c Release -f net8.0 -p:TargetFrameworks=net8.0 -p:NativeLib=Shared -p:OutputType=Library -r $target -o "$output_directory"
+dotnet publish "$client_project" -c Release -p:NativeLib=Shared -p:OutputType=Library -r $target -o "$output_directory"
+
+# dotnet publish "$client_project" -c Release -f net8.0 -p:TargetFrameworks=net8.0 -p:NativeLib=Shared -p:OutputType=Library -r $target -o "$output_directory"
 
 # Post processing for the ClassicUO executable
 case $platform in

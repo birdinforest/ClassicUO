@@ -4999,7 +4999,7 @@ namespace ClassicUO.Network
                         break;
                 }
 
-                
+
                 for (int i = 0; i < list.Count; i++)
                 {
                     if (
@@ -5407,7 +5407,7 @@ namespace ClassicUO.Network
                         ZLib.Decompress(p.Buffer.Slice(p.Position, (int)clen), decData.AsSpan(0, dlen));
                         p.Skip((int)clen);
 
-                        StackDataReader reader = new StackDataReader(decData.AsSpan(0, dlen));
+                        var reader = new StackDataReader(decData.AsSpan(0, dlen));
 
                         for (int i = 0; i < linesNum; ++i)
                         {
@@ -5686,8 +5686,12 @@ namespace ClassicUO.Network
                     break;
 
                 case 0xFE:
-                    Log.Info("Razor ACK sent");
-                    NetClient.Socket.Send_RazorACK();
+
+                    Client.Game.EnqueueAction(5000, () =>
+                    {
+                        Log.Info("Razor ACK sent");
+                        NetClient.Socket.Send_RazorACK();
+                    });
 
                     break;
             }
@@ -7062,6 +7066,16 @@ namespace ClassicUO.Network
                 {
                     //This gump is null terminated: Breaking
                     break;
+                }
+                else if (string.Equals(entry, "gumppichued", StringComparison.InvariantCultureIgnoreCase) ||
+                         string.Equals(entry, "gumppicphued", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    if (gparams.Count >= 3)
+                        gump.Add(new GumpPic(gparams));
+                }
+                else if (string.Equals(entry, "togglelimitgumpscale", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    // ??
                 }
                 else
                 {
